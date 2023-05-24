@@ -15,32 +15,34 @@ import java.time.format.DateTimeFormatter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VisitRequest {
-
+    private Long visitId;
     private Long clinicId;
     private String visitDate;
     private String visitTime;
     private String doctorEmail;
     private Long patientId;
-    private String description;
+    private String doctorDescription;
+    private String receptionistDescription;
+    private Type type;
+    private int lengthOfTheVisit;
 
     public static Visit toEntity(VisitRequest request) {
         return Visit.builder()
+                .type(request.getType())
+                .lengthOfTheVisit(request.getLengthOfTheVisit())
                 .visitDate(convertStringtoData(request.getVisitDate(), request.getVisitTime()))
-                .description(request.getDescription())
+                .doctorDescription(request.getDoctorDescription())
+                .receptionistDescription(request.getReceptionistDescription())
                 .build();
     }
 
     private static LocalDateTime convertStringtoData(String visitDate, String visitTime){
-        System.out.println(visitDate);
-        System.out.println(visitTime);
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LocalDate date = LocalDate.parse(visitDate, dateFormatter);
-        DateTimeFormatter timeFormatter;
-
-        if (visitTime.length() == 4) timeFormatter = DateTimeFormatter.ofPattern("H:mm");
-        else timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         LocalTime time = LocalTime.parse(visitTime, timeFormatter);
+
         return LocalDateTime.of(date, time);
     }
+
 }

@@ -28,10 +28,17 @@ public class Visit {
     @JoinColumn(name = "doctor_id")
     private User doctor;
 
+    private Type type;
+
+    private int lengthOfTheVisit;
+
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private Patient patient;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "doctor_description")
+    private String doctorDescription;
+
+    @Column(name = "receptionist_description")
+    private String receptionistDescription;
 }

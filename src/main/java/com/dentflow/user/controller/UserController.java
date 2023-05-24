@@ -1,11 +1,15 @@
 package com.dentflow.user.controller;
 
 import com.dentflow.auth.model.AuthUserResponse;
+import com.dentflow.clinic.model.Clinic;
+import com.dentflow.clinic.model.ClinicRequest;
 import com.dentflow.exception.ApiRequestException;
+import com.dentflow.patient.model.Patient;
 import com.dentflow.user.model.UserRequest;
 import com.dentflow.user.model.UserResponse;
 import com.dentflow.user.model.User;
 import com.dentflow.user.service.UserService;
+import com.dentflow.visit.model.Visit;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -21,27 +25,17 @@ public class UserController {
         this.userService = userService;
     }
 
-
     @GetMapping
-    public Set<String> getAllUsers(Authentication authentication) {
+    public Set<String> getAllUsersEmails(Authentication authentication) {
+        if(authentication == null) {
+            throw new ApiRequestException("Your token has expired");
+        }
         User user = (User) authentication.getPrincipal();
         return userService.getAllEmails(user.getEmail());
     }
 
-//    @GetMapping("/{userId}")
-//    public User getUser(@PathVariable Long userId) {
-//        return userService.getUser(userId);
-//    }
-
-//    @GetMapping("/{userId}/all_clinics")
-//    public Set<Clinic> getAllClinics(@PathVariable Long userId) {
-//        return userService.getUser(userId).getClinics();
-//    }
     @GetMapping("/profile")
     public UserResponse getUserProfile(Authentication authentication) {
-        if(authentication == null) {
-            throw new ApiRequestException("Your token is invalid");
-        }
         User user = (User) authentication.getPrincipal();
         return new UserResponse(user.getFirstName(), user.getLastName(), user.getEmail());
     }
@@ -51,19 +45,27 @@ public class UserController {
         User user = (User) authentication.getPrincipal();
         userService.updateUser(user.getEmail(), request);
     }
+    @PatchMapping("/addPatientAccount")
+    public void addPatientAccount(@RequestBody ClinicRequest request, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        userService.addPatientAccount(user.getEmail(), request);
+    }
 
-//    @Transactional
-//    @DeleteMapping("/{userId}")
-//    public ResponseEntity<?> deleteUserAccount(@PathVariable Long userId){
-//        userService.deleteUser(userId);
-//        return ResponseEntity.noContent().build();
-//    }
     @GetMapping("/getUser")
     public ResponseEntity<AuthUserResponse> getCurrentUser(Authentication authentication){
+        if(authentication == null) {
+            throw new ApiRequestException("Your token has expired");
+        }
+
         User user = (User) authentication.getPrincipal();
         return ResponseEntity.ok(new AuthUserResponse(user.getEmail(),user.getRoles()));
     }
-
-
-
+    @GetMapping("/myPatientsAccounts")
+    public Set<Clinic> getAllMyPatientAccount(Authentication authentication) {
+        if(authentication == null) {
+            throw new ApiRequestException("Your token has expired");
+        }
+        User user = (User) authentication.getPrincipal();
+        return userService.getAllMyPatientAccountsClinic(user.getEmail());
+    }
 }

@@ -24,18 +24,16 @@ public class SecurityConfiguration {
                 .csrf()
                 .disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/api/patients/**","/api/clinics/**","/**","/api/auth/**","/api/users/**")
-                .permitAll()
-                .anyRequest()
-                .authenticated()
+                    .requestMatchers("/api/patients/**","/api/resetPassword/**","/api/resetEmail/**","/api/clinics/**", "/**", "/api/auth/**","/api/users/**")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout()
-                .logoutUrl("/logout");
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

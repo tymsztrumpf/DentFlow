@@ -1,16 +1,17 @@
 package com.dentflow.tooth.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ToothRequest {
-    private int clinicId;
+    private Long clinicId;
+    private Long patientId;
+    private String currentDateTime;
+    private String doctorName;
+    private ToothRequestModel tooth;
 
 
 }

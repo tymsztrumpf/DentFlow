@@ -1,13 +1,14 @@
 package com.dentflow.clinic.controller;
-
 import com.dentflow.clinic.model.Clinic;
 import com.dentflow.clinic.model.ClinicRequest;
+import com.dentflow.clinic.model.ClinicResponse;
 import com.dentflow.clinic.service.ClinicService;
+import com.dentflow.exception.ApiRequestException;
 import com.dentflow.patient.model.Patient;
-import com.dentflow.patient.service.PatientService;
+import com.dentflow.user.model.DoctorResponse;
 import com.dentflow.user.model.User;
 import com.dentflow.user.model.UserRequest;
-import com.dentflow.visit.service.VisitService;
+import com.dentflow.visit.model.VisitResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,9 @@ public class ClinicController {
 
     private final ClinicService clinicService;
 
-    public ClinicController(ClinicService clinicService,VisitService visitService,PatientService patientService) {
+
+
+    public ClinicController(ClinicService clinicService) {
         this.clinicService = clinicService;
     }
 
@@ -28,16 +31,15 @@ public class ClinicController {
         User user = (User) authentication.getPrincipal();
         return clinicService.getAllUserClinicWhereWork(user.getEmail());
     }
-
+    @GetMapping
+    public Set<ClinicResponse> getAllClinic() {
+        return clinicService.getAllClinic();
+    }
     @PostMapping
     public void registerClinic(
-            @RequestBody  ClinicRequest clinicRequest,
-            Authentication authentication
-    ) {
-        User user = (User) authentication.getPrincipal();
-        clinicService.registerClinic(clinicRequest,user);
+            @RequestBody  ClinicRequest clinicRequest) {
+        clinicService.registerClinic(clinicRequest);
     }
-
     @GetMapping("/myClinic")
     public Clinic get(Authentication authentication) {
         User user  = (User) authentication.getPrincipal();
@@ -56,31 +58,60 @@ public class ClinicController {
         clinicService.addEmployee(user.getEmail(), userRequest);
     }
 
+    @DeleteMapping("/personnel")
+    public void deleteEmployee(@RequestBody UserRequest userRequest, Authentication authentication){
+        User user = (User) authentication.getPrincipal();
+        clinicService.deleteEmployee(user.getEmail(), userRequest);
+    }
+    @PatchMapping("/myClinic")
+    public void updateClinicData(@RequestBody ClinicRequest clinicRequest, Authentication authentication) {
+        User user = (User) authentication.getPrincipal();
+        System.out.println("AAAAAAAAAAAAAAAAAAAA");
+        System.out.println("AAAAAAAAAAAAAAAAAAAA" + clinicRequest);
+        System.out.println("AAAAAAAAAAAAAAAAAAAA" + user.getEmail());
+        clinicService.updateClinic(user.getEmail(), clinicRequest);
+    }
     @GetMapping("/patients")
-    public Set<Patient> getPatients(Authentication authentication, ClinicRequest request){
+    public Set<Patient> getPatients(Authentication authentication, ClinicRequest clinicRequest){
         User user = (User) authentication.getPrincipal();
-        return clinicService.getPatients(user.getEmail(), request.getClinicId());
+        Long clinicId = clinicRequest.getClinicId();
+        if(!clinicService.checkIfClinicExists(clinicId)){
+            throw new ApiRequestException("Cannot find clinic with that id" + clinicId);
+        }
+        return clinicService.getPatients(user.getEmail(), clinicId);
     }
 
+    @GetMapping("/myDoctors")
+    public Set<User> getDoctorsFromMyClinic(Authentication authentication, ClinicRequest clinicRequest){
+        User user = (User) authentication.getPrincipal();
+        Long clinicId = clinicRequest.getClinicId();
+
+        if(!clinicService.checkIfClinicExists(clinicId)){
+            throw new ApiRequestException("Cannot find clinic with that id" + clinicId);
+        }
+
+        return clinicService.getDoctorsfromMyClinic(user.getEmail(), clinicId);
+    }
     @GetMapping("/doctors")
-    public Set<User> getDoctors(Authentication authentication, ClinicRequest clinicRequest){
-        User user = (User) authentication.getPrincipal();
-        return clinicService.getDoctors(user.getEmail(), clinicRequest.getClinicId());
+    public Set<DoctorResponse> getDoctorsFromClinic(ClinicRequest clinicRequest){
+        Long clinicId = clinicRequest.getClinicId();
+
+        if(!clinicService.checkIfClinicExists(clinicId)){
+            throw new ApiRequestException("Cannot find clinic with that id" + clinicId);
+        }
+
+        return clinicService.getDoctorsByClinicId( clinicId);
+    }
+    @GetMapping("/visits")
+    public Set<VisitResponse> getVisitsFromClinic(ClinicRequest clinicRequest){
+        Long clinicId = clinicRequest.getClinicId();
+
+        if(!clinicService.checkIfClinicExists(clinicId)){
+            throw new ApiRequestException("Cannot find clinic with that id" + clinicId);
+        }
+
+        return clinicService.getVisitsByClinicId( clinicId);
     }
 
-
-//    @Transactional
-//    @DeleteMapping("/{clinicId}")
-//    public void deleteClinic(@PathVariable Long clinicId){
-//        clinicService.deleteClinic(clinicId);
-//    }
-//
-//    @Transactional
-//    @DeleteMapping("/{clinicId}/personnel/{userId}")
-//    public void removeUser(
-//            @PathVariable("clinicId") Long clinicId,
-//            @PathVariable("userId") Long userId){
-//        clinicService.removeEmployee(userId, clinicId);
-//    }
 
 }

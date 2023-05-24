@@ -1,6 +1,6 @@
 package com.dentflow.patient.controller;
 
-import com.dentflow.clinic.model.Clinic;
+import com.dentflow.exception.ApiRequestException;
 import com.dentflow.patient.model.Patient;
 import com.dentflow.patient.model.PatientRequest;
 import com.dentflow.patient.service.PatientService;
@@ -23,7 +23,7 @@ public class PatientController {
     @GetMapping("/getPatient")
     public Patient getPatientFromClinic(
             @PathVariable long patientId){
-        return patientService.getPatient(patientId);
+        return patientService.getPatientById(patientId);
     }
     @PostMapping
     public void registerPatient(@RequestBody PatientRequest request, Authentication authentication) {
@@ -32,8 +32,14 @@ public class PatientController {
     }
 
     @GetMapping
-    public Set<Visit> getVisitHistory(@RequestBody PatientRequest request, Authentication authentication){
+    public Set<Visit> getVisitHistory(@RequestParam Long patientId, @RequestParam Long clinicId ,Authentication authentication){
         User user = (User) authentication.getPrincipal();
-        return patientService.getPatientVisitHistory(request, user.getEmail());
+
+
+        if(!patientService.checkIfPatientExist(patientId)){
+            throw new ApiRequestException("Cannot find patient with that id: " + patientId);
+        }
+
+        return patientService.getPatientVisitHistory(clinicId, patientId, user.getEmail());
     }
 }
